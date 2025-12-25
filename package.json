@@ -1,0 +1,16 @@
+{
+  "name": "app_fun_id",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+     "dev": "concurrently \"npm run dev --prefix fun_id_backend\" \"npm run dev --prefix fun_id_front_end/Fan-Id-Smart-App\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Werraoui/FAN-ID-APP.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
