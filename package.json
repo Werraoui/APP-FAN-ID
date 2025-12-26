@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-     "dev": "concurrently \"npm run dev --prefix fun_id_backend\" \"npm run dev --prefix fun_id_front_end/Fan-Id-Smart-App\""
+    "dev": "concurrently \"npm run dev --prefix fun_id_backend\" \"npm run dev --prefix fun_id_front_end/Fan-Id-Smart-App\""
   },
   "repository": {
     "type": "git",
@@ -11,6 +11,10 @@
   },
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "mongodb": "^7.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

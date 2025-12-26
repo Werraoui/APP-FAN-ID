@@ -31,21 +31,51 @@ const fetchAPI = async (
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  const url = `${API_BASE_URL}${endpoint}`;
+  console.log(`🌐 API Request: ${options.method || 'GET'} ${url}`);
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(url, {
       ...options,
       headers,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'An error occurred');
+    // Check if response is ok before trying to parse JSON
+    let data;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      throw new Error(`Server returned non-JSON response: ${text}`);
     }
 
+    if (!response.ok) {
+      console.error('❌ API Error Response:', data);
+      throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    console.log('✅ API Success:', endpoint);
     return data;
-  } catch (error) {
-    console.error('API Error:', error);
+  } catch (error: any) {
+    console.error('❌ API Error:', {
+      endpoint,
+      url,
+      error: error.message,
+      type: error.name
+    });
+
+    // Provide more helpful error messages
+    if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+      throw new Error(
+        `Cannot connect to server. Please check:\n` +
+        `1. Backend server is running on ${API_BASE_URL}\n` +
+        `2. No firewall blocking the connection\n` +
+        `3. CORS is properly configured`
+      );
+    }
+
     throw error;
   }
 };
