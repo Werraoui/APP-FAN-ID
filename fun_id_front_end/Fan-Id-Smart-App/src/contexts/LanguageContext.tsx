@@ -55,8 +55,6 @@ const translations = {
     pleaseUploadAll: 'Veuillez télécharger tous les documents',
     
     // Document Types
-    passport: 'Passeport',
-    passportDesc: 'Photo de la page d\'identité de votre passeport',
     classicVisa: 'Visa classique',
     classicVisaDesc: 'Photo de votre visa papier dans le passeport',
     eVisa: 'E-visa',
