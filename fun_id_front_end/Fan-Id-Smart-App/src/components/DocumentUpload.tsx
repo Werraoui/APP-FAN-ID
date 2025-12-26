@@ -35,14 +35,27 @@ export function DocumentUpload() {
   });
 
   const [documentIds, setDocumentIds] = useState<Record<string, string>>({});
-  const [errors, setErrors] = useState<Partial<Record<keyof DocumentState, string>>>({});
+  const [errors, setErrors] = useState<{
+    documents: Partial<Record<keyof DocumentState, string>>;
+    submit?: string;
+  }>({
+    documents: {}
+  });
+
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = async (docType: keyof DocumentState, file: File | null) => {
     setDocuments(prev => ({ ...prev, [docType]: file }));
-    if (errors[docType]) {
-      setErrors(prev => ({ ...prev, [docType]: undefined }));
+    if (errors.documents[docType]) {
+  setErrors(prev => ({
+    ...prev,
+    documents: {
+      ...prev.documents,
+      [docType]: undefined
     }
+  }));
+}
+
 
     // Upload file immediately when selected
     if (file) {
@@ -70,18 +83,20 @@ export function DocumentUpload() {
 
   const handleEntryDateChange = (value: string) => {
     setDocuments(prev => ({ ...prev, entryDate: value }));
-    if (errors.entryDate) {
-      setErrors(prev => ({ ...prev, entryDate: undefined }));
+    if (errors.documents.entryDate) {
+  setErrors(prev => ({
+    ...prev,
+    documents: {
+      ...prev.documents,
+      entryDate: undefined
     }
+  }));
+}
+
   };
 
   const validateDocuments = (): boolean => {
     const newErrors: Partial<Record<keyof DocumentState, string>> = {};
-
-    // Always require passport
-    if (!documents.passport) {
-      newErrors.passport = 'Ce document est requis';
-    }
 
     // Profile-specific validations
     switch (profile) {
@@ -128,7 +143,7 @@ export function DocumentUpload() {
         break;
     }
 
-    setErrors(newErrors);
+    setErrors(prev => ({ ...prev, documents: newErrors }));
     return Object.keys(newErrors).length === 0;
   };
 
@@ -141,9 +156,6 @@ export function DocumentUpload() {
       // Prepare document IDs for backend
       const documentsForBackend: Record<string, string> = {};
       
-      if (documents.passport && documentIds.passport) {
-        documentsForBackend.passport = documentIds.passport;
-      }
       if (documents.classicVisa && documentIds.classicVisa) {
         documentsForBackend.classicVisa = documentIds.classicVisa;
       }
@@ -171,7 +183,12 @@ export function DocumentUpload() {
         } 
       });
     } catch (error: any) {
-      setErrors({ submit: error.message || 'Erreur lors de la soumission' });
+      setErrors(prev => ({
+  ...prev,
+  submit: (error as any).message || 'Erreur lors de la soumission'
+}));
+
+
     } finally {
       setUploading(false);
     }
@@ -184,15 +201,7 @@ export function DocumentUpload() {
       description: string;
       type: 'file' | 'date';
       accept?: string;
-    }> = [
-      {
-        key: 'passport',
-        label: t('passport'),
-        description: t('passportDesc'),
-        type: 'file',
-        accept: 'image/*,.pdf',
-      },
-    ];
+    }> = []
 
     switch (profile) {
       case 'foreigner-classic-visa':
@@ -344,7 +353,8 @@ export function DocumentUpload() {
           <div className="space-y-6">
             {requiredDocs.map((doc) => {
               const isUploaded = isDocumentUploaded(doc.key);
-              const hasError = errors[doc.key];
+              const hasError = errors.documents[doc.key];
+
 
               if (doc.type === 'date') {
                 return (
