@@ -1,18 +1,24 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Languages } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { visaExemptedCountries, visaRequiredCountries, evisaEligibleCountries } from '../data/countries';
+
+type ProfileType = 'foreigner-classic-visa' | 'foreigner-visa-exempt' | 'foreigner-evisa' | 'moroccan-expired-cnie';
 
 export function PersonalInfo() {
   const navigate = useNavigate();
   const location = useLocation();
-  const profile = location.state?.profile || 'foreigner-classic-visa';
+  const profile = location.state?.profile as ProfileType || 'foreigner-classic-visa';
   const { t, language, setLanguage } = useLanguage();
+
+  // For Moroccan profile, set nationality automatically
+  const isMoroccan = profile === 'moroccan-expired-cnie';
 
   const [formData, setFormData] = useState({
     lastName: '',
     firstName: '',
-    nationality: '',
+    nationality: isMoroccan ? 'Maroc' : '',
     dateOfBirth: '',
     passportNumber: ''
   });
@@ -26,9 +32,16 @@ export function PersonalInfo() {
     const newErrors: Partial<typeof formData> = {};
     if (!formData.lastName.trim()) newErrors.lastName = 'Ce champ est requis';
     if (!formData.firstName.trim()) newErrors.firstName = 'Ce champ est requis';
-    if (!formData.nationality) newErrors.nationality = 'Ce champ est requis';
+    if (!isMoroccan && !formData.nationality) {
+      newErrors.nationality = 'Ce champ est requis';
+    }
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Ce champ est requis';
     if (!formData.passportNumber.trim()) newErrors.passportNumber = 'Ce champ est requis';
+
+    // Ensure nationality is set for Moroccan profile
+    if (isMoroccan) {
+      formData.nationality = 'Maroc';
+    }
 
     setErrors(newErrors);
 
@@ -48,6 +61,23 @@ export function PersonalInfo() {
       setErrors({ ...errors, [name]: undefined });
     }
   };
+
+  // Get countries list based on profile
+  const availableCountries = useMemo(() => {
+    switch (profile) {
+      case 'foreigner-classic-visa':
+        return visaRequiredCountries.sort();
+      case 'foreigner-visa-exempt':
+        return visaExemptedCountries.sort();
+      case 'foreigner-evisa':
+        // Show only e-visa eligible countries
+        return evisaEligibleCountries;
+      case 'moroccan-expired-cnie':
+        return ['Maroc']; // Only Morocco for this profile
+      default:
+        return [];
+    }
+  }, [profile]);
 
   return (
     <div className="min-h-screen px-6 py-8">
@@ -136,36 +166,47 @@ export function PersonalInfo() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-gray-700 mb-2">
-                {t('nationality')} <span className="text-red-600">*</span>
-              </label>
-              <select
-                name="nationality"
-                value={formData.nationality}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  errors.nationality ? 'border-red-500' : 'border-gray-300'
-                }`}
-                required
-              >
-                <option value="">{t('selectNationality')}</option>
-                <option value="Maroc">Maroc</option>
-                <option value="Algérie">Algérie</option>
-                <option value="Tunisie">Tunisie</option>
-                <option value="Sénégal">Sénégal</option>
-                <option value="Côte d'Ivoire">Côte d'Ivoire</option>
-                <option value="Nigeria">Nigeria</option>
-                <option value="Egypte">Egypte</option>
-                <option value="Cameroun">Cameroun</option>
-                <option value="France">France</option>
-                <option value="Belgique">Belgique</option>
-                <option value="Autre">Autre</option>
-              </select>
-              {errors.nationality && (
-                <p className="text-red-600 text-sm mt-1">{errors.nationality}</p>
-              )}
-            </div>
+            {!isMoroccan ? (
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  {t('nationality')} <span className="text-red-600">*</span>
+                </label>
+                <select
+                  name="nationality"
+                  value={formData.nationality}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                    errors.nationality ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  required
+                >
+                  <option value="">{t('selectNationality')}</option>
+                  {availableCountries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+                {errors.nationality && (
+                  <p className="text-red-600 text-sm mt-1">{errors.nationality}</p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  {t('nationality')} <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value="Maroc"
+                  disabled
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                />
+                <p className="text-gray-500 text-sm mt-1">
+                  {t('nationalityAutoSet')}
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-gray-700 mb-2">

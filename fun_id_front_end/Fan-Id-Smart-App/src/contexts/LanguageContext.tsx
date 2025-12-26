@@ -40,6 +40,7 @@ const translations = {
     dateOfBirth: 'Date de naissance',
     passportNumber: 'Numéro de passeport',
     selectNationality: 'Sélectionnez votre nationalité',
+    nationalityAutoSet: 'Votre nationalité est automatiquement définie comme Maroc',
     important: 'Important',
     infoMatchPassport: 'Assurez-vous que toutes les informations correspondent exactement à celles de votre passeport.',
     
@@ -144,6 +145,7 @@ const translations = {
     dateOfBirth: 'Date of Birth',
     passportNumber: 'Passport Number',
     selectNationality: 'Select your nationality',
+    nationalityAutoSet: 'Your nationality is automatically set as Morocco',
     important: 'Important',
     infoMatchPassport: 'Make sure all information matches exactly what is on your passport.',
     
